@@ -1,0 +1,8 @@
+Package: oakadmin
+Version: 0.1
+Section: utils
+Priority: optional
+Architecture: all
+Depends: debian-goodies
+Maintainer: Behrad Eslamifar <b.eslamifar@cvak.ir>
+Description: Oakadmin is bunch of scripts for automate system administrator tasks

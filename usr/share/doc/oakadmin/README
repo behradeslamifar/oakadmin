@@ -1,0 +1,11 @@
+=== Description
+This package contain few scripts that help admin to simpilfied their task.
+1- Tape backup
+2- Debian update management
+
+
+==== Tape backup
+files
+  * ~/.oakadmin		folder to save config files and data file
+  * ~/.oakadmin/tapelabels	save labels to force use unique label
+  * ~/.oakadmin/tap-<lable>	per tape file. contain archives name and their content
