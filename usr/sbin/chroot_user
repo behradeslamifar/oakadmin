@@ -13,16 +13,21 @@ user_exist() {
 }
 
 prepare_chroot() {
-    if [ -e "/home/chroot" ]
+    if [ -e "/home/chroot" -a "$force" != "true" ]
     then
 	echo "/home/chroot is exist. If you wants repeat preparing chroot directory use force (-f) option"
 	return 1
+    elif [ -e "/home/chroot" -a "$force" = "true" ]
+	oldchroot=/home/chroot-$(date +"%y%m%d-%H%M")
+	mv /home/chroot $oldchroot
     fi
 
     # create basic directory
+    echo "Default chroot directory [/home/chroot]."
     mkdir -p /home/chroot/{dev,usr,bin,sbin,lib,lib64,home,etc} 2> /dev/null
     mkdir -p /home/chroot/usr/{bin,sbin,lib} 2> /dev/null
     mkdir /home/chroot/lib/x86_64-linux-gnu 2> /dev/null
+    cp -r $oldchroot/home/* /home/chroot/home/
     echo "Create basic directory .... pass"
 
     
@@ -51,6 +56,7 @@ prepare_chroot() {
     cp /etc/nsswitch.conf /home/chroot/etc/
     cp /lib/x86_64-linux-gnu/{libnss_dns-2.23.so,libnss_files-2.23.so,libnsl-2.23.so,libnss_compat-2.23.so} /home/chroot/lib/x86_64-linux-gnu/
     cp /usr/bin/groups /home/chroot/usr/bin/
+    cp /usr/bin/whoami /home/chroot/usr/bin/
     cd /home/chroot/lib/x86_64-linux-gnu
     ln -s libnss_compat-2.23.so libnss_compat.so.2
     ln -s libnss_dns-2.23.so libnss_dns.so.2
@@ -62,17 +68,22 @@ prepare_chroot() {
     cp /lib/x86_64-linux-gnu/{libselinux.so.1,libpcre.so.3,libpthread.so.0} /home/chroot/lib/
     
     # copy utils
-    cp /bin/{ls,cp,rm,mv,cat,nano} bin/
-    cp /usr/bin/whoami usr/bin/
+    cp /bin/{ls,cp,rm,mv,cat,nano} /home/chroot/bin/
     echo "Copy commands and utilities .... pass"
 
 }
 
-mv /home/$USER /home/chroot/
-while getopts :iu:d:t: opt
+usage() {
+    echo -e "Usage chroot_user [-u username][-d chroot_directory]\n      chroot_user -i\n"
+
+    return 0
+}
+
+#mv /home/$USER /home/chroot/
+while getopts :ifu:d:t: opt
 do
 	case $opt in 
-	    i) interactive=1
+	    i) interactive=true
 		;;
 	    u) username="$opt"
 		;;
@@ -80,7 +91,21 @@ do
 		;;
 	    t) type="$opt"
 		;;
-	    *) echo -e "Unknown Option: $opt. Usage ssh_chroot_config [-u username][-d chroot_directory]"
+	    f) force=true
+	    *) usage
 		;;
 	esac
 done
+
+chrootdir=${chroot:-/home/chroot}
+
+if [[ "$interactive" = "true" ]] && [ ! -z "$username" -o  ! -z "$type" ]
+then
+    echo "Dont use \"-i\" with any other argument"
+    usage
+    exit 1
+elif [
+fi
+
+
+exit 0
