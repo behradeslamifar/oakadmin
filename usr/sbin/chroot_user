@@ -13,62 +13,63 @@ user_exist() {
 }
 
 prepare_chroot() {
-    if [ -e "/home/chroot" -a "$force" != "true" ]
+    if [ -e "$chrootdir" -a "$force" != "true" ]
     then
-	echo "/home/chroot is exist. If you wants repeat preparing chroot directory use force (-f) option"
+	echo "$chrootdir is exist. If you wants repeat preparing chroot directory use force (-f) option"
 	return 1
-    elif [ -e "/home/chroot" -a "$force" = "true" ]
-	oldchroot=/home/chroot-$(date +"%y%m%d-%H%M")
-	mv /home/chroot $oldchroot
+    elif [ -e "$chrootdir" -a "$force" = "true" ]
+    then
+	oldchroot=$chrootdir-$(date +"%y%m%d-%H%M")
+	mv $chrootdir $oldchroot
     fi
 
     # create basic directory
-    echo "Default chroot directory [/home/chroot]."
-    mkdir -p /home/chroot/{dev,usr,bin,sbin,lib,lib64,home,etc} 2> /dev/null
-    mkdir -p /home/chroot/usr/{bin,sbin,lib} 2> /dev/null
-    mkdir /home/chroot/lib/x86_64-linux-gnu 2> /dev/null
-    cp -r $oldchroot/home/* /home/chroot/home/
+    echo "Default chroot directory [$chrootdir]."
+    mkdir -p $chrootdir/{dev,usr,bin,sbin,lib,lib64,home,etc} 2> /dev/null
+    mkdir -p $chrootdir/usr/{bin,sbin,lib} 2> /dev/null
+    mkdir $chrootdir/lib/x86_64-linux-gnu 2> /dev/null
+    cp -r $oldchroot/home/* $chrootdir/home/
     echo "Create basic directory .... pass"
 
     
     # create necessary
-    mknod /home/chroot/dev/null c 1 3
-    mknod /home/chroot/dev/tty c 5 0
-    mknod /home/chroot/dev/zero c 1 5
-    mknod /home/chroot/dev/random c 1 8
+    mknod $chrootdir/dev/null c 1 3
+    mknod $chrootdir/dev/tty c 5 0
+    mknod $chrootdir/dev/zero c 1 5
+    mknod $chrootdir/dev/random c 1 8
     echo "Create minimum character device .... pass"
     
     # copy bash and its dependencies
-    cp /bin/bash /home/chroot/bin/
-    cp /lib/x86_64-linux-gnu/{libc.so.6,libtinfo.so.5,libdl.so.2} /home/chroot/lib/
-    cp /lib64/ld-linux-x86-64.so.2 /home/chroot/lib64/
+    cp /bin/bash $chrootdir/bin/
+    cp /lib/x86_64-linux-gnu/{libc.so.6,libtinfo.so.5,libdl.so.2} $chrootdir/lib/
+    cp /lib64/ld-linux-x86-64.so.2 $chrootdir/lib64/
     echo "Copy bash and depencies .... pass"
     
     # bash config
-    cp /etc/bash.bashrc /home/chroot/etc/
-    cp /etc/profile /home/chroot/etc/
-    cp -r /etc/profile.d /home/chroot/etc/
+    cp /etc/bash.bashrc $chrootdir/etc/
+    cp /etc/profile $chrootdir/etc/
+    cp -r /etc/profile.d $chrootdir/etc/
     echo "Copy bash and profile config .... pass"
     
     # copy nsswitch config and library
-    cp /etc/passwd /home/chroot/etc/
-    cp /etc/group /home/chroot/etc/
-    cp /etc/nsswitch.conf /home/chroot/etc/
-    cp /lib/x86_64-linux-gnu/{libnss_dns-2.23.so,libnss_files-2.23.so,libnsl-2.23.so,libnss_compat-2.23.so} /home/chroot/lib/x86_64-linux-gnu/
-    cp /usr/bin/groups /home/chroot/usr/bin/
-    cp /usr/bin/whoami /home/chroot/usr/bin/
-    cd /home/chroot/lib/x86_64-linux-gnu
+    cp /etc/passwd $chrootdir/etc/
+    cp /etc/group $chrootdir/etc/
+    cp /etc/nsswitch.conf $chrootdir/etc/
+    cp /lib/x86_64-linux-gnu/{libnss_dns-2.23.so,libnss_files-2.23.so,libnsl-2.23.so,libnss_compat-2.23.so} $chrootdir/lib/x86_64-linux-gnu/
+    cp /usr/bin/groups $chrootdir/usr/bin/
+    cp /usr/bin/whoami $chrootdir/usr/bin/
+    cd $chrootdir/lib/x86_64-linux-gnu
     ln -s libnss_compat-2.23.so libnss_compat.so.2
     ln -s libnss_dns-2.23.so libnss_dns.so.2
     ln -s libnsl-2.23.so libnsl.so.1 
     ln -s libnss_files-2.23.so libnss_files.so.2
     echo "Copy nsswitch config and libraries .... pass"
     
-    cp /usr/bin/id /home/chroot/usr/bin/
-    cp /lib/x86_64-linux-gnu/{libselinux.so.1,libpcre.so.3,libpthread.so.0} /home/chroot/lib/
+    cp /usr/bin/id $chrootdir/usr/bin/
+    cp /lib/x86_64-linux-gnu/{libselinux.so.1,libpcre.so.3,libpthread.so.0} $chrootdir/lib/
     
     # copy utils
-    cp /bin/{ls,cp,rm,mv,cat,nano} /home/chroot/bin/
+    cp /bin/{ls,cp,rm,mv,cat,nano} $chrootdir/bin/
     echo "Copy commands and utilities .... pass"
 
 }
@@ -79,7 +80,7 @@ usage() {
     return 0
 }
 
-#mv /home/$USER /home/chroot/
+#mv /home/$USER $chrootdir/
 while getopts :ifu:d:t: opt
 do
 	case $opt in 
@@ -104,8 +105,9 @@ then
     echo "Dont use \"-i\" with any other argument"
     usage
     exit 1
-elif [
+elif [ "$interactive" = "true" ]
+then
+    prepare_chroot
 fi
-
 
 exit 0
