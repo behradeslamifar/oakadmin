@@ -1,0 +1,86 @@
+#!/bin/bash
+
+user_exist() {
+    local user=$1
+    local exist=$(grep "\<$user\>" /etc/passwd)
+
+    if [ -z "$exist" ]
+    then
+	exit 1
+    else
+	exit 0
+    fi
+}
+
+prepare_chroot() {
+    if [ -e "/home/chroot" ]
+    then
+	echo "/home/chroot is exist. If you wants repeat preparing chroot directory use force (-f) option"
+	return 1
+    fi
+
+    # create basic directory
+    mkdir -p /home/chroot/{dev,usr,bin,sbin,lib,lib64,home,etc} 2> /dev/null
+    mkdir -p /home/chroot/usr/{bin,sbin,lib} 2> /dev/null
+    mkdir /home/chroot/lib/x86_64-linux-gnu 2> /dev/null
+    echo "Create basic directory .... pass"
+
+    
+    # create necessary
+    mknod /home/chroot/dev/null c 1 3
+    mknod /home/chroot/dev/tty c 5 0
+    mknod /home/chroot/dev/zero c 1 5
+    mknod /home/chroot/dev/random c 1 8
+    echo "Create minimum character device .... pass"
+    
+    # copy bash and its dependencies
+    cp /bin/bash /home/chroot/bin/
+    cp /lib/x86_64-linux-gnu/{libc.so.6,libtinfo.so.5,libdl.so.2} /home/chroot/lib/
+    cp /lib64/ld-linux-x86-64.so.2 /home/chroot/lib64/
+    echo "Copy bash and depencies .... pass"
+    
+    # bash config
+    cp /etc/bash.bashrc /home/chroot/etc/
+    cp /etc/profile /home/chroot/etc/
+    cp -r /etc/profile.d /home/chroot/etc/
+    echo "Copy bash and profile config .... pass"
+    
+    # copy nsswitch config and library
+    cp /etc/passwd /home/chroot/etc/
+    cp /etc/group /home/chroot/etc/
+    cp /etc/nsswitch.conf /home/chroot/etc/
+    cp /lib/x86_64-linux-gnu/{libnss_dns-2.23.so,libnss_files-2.23.so,libnsl-2.23.so,libnss_compat-2.23.so} /home/chroot/lib/x86_64-linux-gnu/
+    cp /usr/bin/groups /home/chroot/usr/bin/
+    cd /home/chroot/lib/x86_64-linux-gnu
+    ln -s libnss_compat-2.23.so libnss_compat.so.2
+    ln -s libnss_dns-2.23.so libnss_dns.so.2
+    ln -s libnsl-2.23.so libnsl.so.1 
+    ln -s libnss_files-2.23.so libnss_files.so.2
+    echo "Copy nsswitch config and libraries .... pass"
+    
+    cp /usr/bin/id /home/chroot/usr/bin/
+    cp /lib/x86_64-linux-gnu/{libselinux.so.1,libpcre.so.3,libpthread.so.0} /home/chroot/lib/
+    
+    # copy utils
+    cp /bin/{ls,cp,rm,mv,cat,nano} bin/
+    cp /usr/bin/whoami usr/bin/
+    echo "Copy commands and utilities .... pass"
+
+}
+
+mv /home/$USER /home/chroot/
+while getopts :iu:d:t: opt
+do
+	case $opt in 
+	    i) interactive=1
+		;;
+	    u) username="$opt"
+		;;
+	    d) chroot="$opt"
+		;;
+	    t) type="$opt"
+		;;
+	    *) echo -e "Unknown Option: $opt. Usage ssh_chroot_config [-u username][-d chroot_directory]"
+		;;
+	esac
+done
