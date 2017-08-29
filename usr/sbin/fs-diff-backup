@@ -8,12 +8,12 @@
 set -e
 
 # backup home
-HOME="/home/peyk"
+HOME="/home/user"
 
 hourly() {
-	rsync -av --delete --chown=peyk:peyk --link-dest=../dunro-backup-1 root@192.168.20.2:/home/www-data/. $HOME/dunro-backup/
+	rsync -av --delete --chown=user:user --link-dest=../project-backup-1 root@192.168.20.2:/home/www-data/. $HOME/project-backup/
 
-	[ -d "$HOME/dunro-backup-24" ] && [ ! -d "$HOME/dunro-backup-tmp" ] &&  mv $HOME/dunro-backup-24 $HOME/dunro-backup-tmp
+	[ -d "$HOME/project-backup-24" ] && [ ! -d "$HOME/project-backup-tmp" ] &&  mv $HOME/project-backup-24 $HOME/project-backup-tmp
 	for I in {24..1}
 	do
 		if [ "$I" == "1" ] 
@@ -23,23 +23,23 @@ hourly() {
 	
 		J=$I
 		((J--))
-		filesrc="$HOME/dunro-backup-$J"
-		filedst="$HOME/dunro-backup-$I"
+		filesrc="$HOME/project-backup-$J"
+		filedst="$HOME/project-backup-$I"
 	
 		[ -d "$filesrc" ] && [ ! -e "$filedst" ] && mv $filesrc $filedst
 	done
 	
-	[ ! -d "$HOME/dunro-backup-1" -a ! -e "$HOME/dunro-backup-1" ] && mv $HOME/dunro-backup $HOME/dunro-backup-1	
-	[ -d "$HOME/dunro-backup-tmp" -a ! -e "$HOME/dunro-backup" ] && mv $HOME/dunro-backup-tmp $HOME/dunro-backup
-	[ -d "$HOME/dunro-backup-1" ] && touch $HOME/dunro-backup-1
+	[ ! -d "$HOME/project-backup-1" -a ! -e "$HOME/project-backup-1" ] && mv $HOME/project-backup $HOME/project-backup-1	
+	[ -d "$HOME/project-backup-tmp" -a ! -e "$HOME/project-backup" ] && mv $HOME/project-backup-tmp $HOME/project-backup
+	[ -d "$HOME/project-backup-1" ] && touch $HOME/project-backup-1
 
 	return 0
 }
 
 daily() {
-	rsync -av --delete --chown=peyk:peyk --link-dest=../dunro-backup-1  /home/peyk/dunro-backup-1/. /home/peyk/daily/dunro-backup/
+	rsync -av --delete --chown=user:user --link-dest=../project-backup-1  /home/user/project-backup-1/. /home/user/daily/project-backup/
 
-	[ -d "$HOME/daily/dunro-backup-7" ] && [ ! -d "$HOME/daily/dunro-backup-tmp" ] && mv $HOME/daily/dunro-backup-7 $HOME/daily/dunro-backup-tmp
+	[ -d "$HOME/daily/project-backup-7" ] && [ ! -d "$HOME/daily/project-backup-tmp" ] && mv $HOME/daily/project-backup-7 $HOME/daily/project-backup-tmp
         for I in {7..1}
         do
                 if [ "$I" == "1" ]
@@ -49,14 +49,14 @@ daily() {
 
                 J=$I
                 ((J--))
-                filesrc="$HOME/daily/dunro-backup-$J"
-                filedst="$HOME/daily/dunro-backup-$I"
+                filesrc="$HOME/daily/project-backup-$J"
+                filedst="$HOME/daily/project-backup-$I"
 
 		[ -d "$filesrc" ] && [ ! -e "$filedst" ] && mv $filesrc $filedst
         done
 
-	[ -d "$HOME/daily/dunro-backup" ] && [ ! -e "$HOME/daily/dunro-backup-1" ] && mv $HOME/daily/dunro-backup $HOME/daily/dunro-backup-1
-	[ -d "$HOME/daily/dunro-backup-tmp" ] && [ ! -e "$HOME/daily/dunro-backup" ] &&  mv $HOME/daily/dunro-backup-tmp $HOME/daily/dunro-backup
+	[ -d "$HOME/daily/project-backup" ] && [ ! -e "$HOME/daily/project-backup-1" ] && mv $HOME/daily/project-backup $HOME/daily/project-backup-1
+	[ -d "$HOME/daily/project-backup-tmp" ] && [ ! -e "$HOME/daily/project-backup" ] &&  mv $HOME/daily/project-backup-tmp $HOME/daily/project-backup
 	
 	return 0
 
@@ -64,9 +64,9 @@ daily() {
 
 
 weekly() {
-	rsync -av --delete --chown=peyk:peyk --link-dest=../dunro-backup-1  /home/peyk/dunro-backup-1/. /home/peyk/weekly/dunro-backup/
+	rsync -av --delete --chown=user:user --link-dest=../project-backup-1  /home/user/project-backup-1/. /home/user/weekly/project-backup/
 
-	[ -d "$HOME/weekly/dunro-backup-4" ] && [ ! -e "$HOME/weekly/dunro-backup-tmp" ] && mv $HOME/weekly/dunro-backup-4 $HOME/weekly/dunro-backup-tmp
+	[ -d "$HOME/weekly/project-backup-4" ] && [ ! -e "$HOME/weekly/project-backup-tmp" ] && mv $HOME/weekly/project-backup-4 $HOME/weekly/project-backup-tmp
         for I in {4..1}
         do
                 if [ "$I" == "1" ]
@@ -76,14 +76,14 @@ weekly() {
 
                 J=$I
                 ((J--))
-                filesrc="$HOME/weekly/dunro-backup-$J"
-                filedst="$HOME/weekly/dunro-backup-$I"
+                filesrc="$HOME/weekly/project-backup-$J"
+                filedst="$HOME/weekly/project-backup-$I"
 
 		[ -d "$filesrc" ] && [ ! -e "$filedst" ] && mv $filesrc $filedst
         done
 
-		[ -d "$HOME/weekly/dunro-backup" ] && [ ! -e "$HOME/weekly/dunro-backup-1" ] && mv $HOME/weekly/dunro-backup $HOME/weekly/dunro-backup-1
-		[ -d "$HOME/weekly/dunro-backup-tmp" ] && [ ! -e "$HOME/weekly/dunro-backup" ] &&  mv $HOME/weekly/dunro-backup-tmp $HOME/weekly/dunro-backup
+		[ -d "$HOME/weekly/project-backup" ] && [ ! -e "$HOME/weekly/project-backup-1" ] && mv $HOME/weekly/project-backup $HOME/weekly/project-backup-1
+		[ -d "$HOME/weekly/project-backup-tmp" ] && [ ! -e "$HOME/weekly/project-backup" ] &&  mv $HOME/weekly/project-backup-tmp $HOME/weekly/project-backup
 	
 	return 0
 
