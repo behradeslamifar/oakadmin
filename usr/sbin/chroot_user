@@ -24,11 +24,11 @@ prepare_chroot() {
     fi
 
     # create basic directory
-    echo "Default chroot directory [$chrootdir]."
+    echo "Default chroot directory will be created [$chrootdir]. If you want change this default use \"-d directory_name\""
     mkdir -p $chrootdir/{dev,usr,bin,sbin,lib,lib64,home,etc} 2> /dev/null
     mkdir -p $chrootdir/usr/{bin,sbin,lib} 2> /dev/null
     mkdir $chrootdir/lib/x86_64-linux-gnu 2> /dev/null
-    cp -r $oldchroot/home/* $chrootdir/home/
+    [ ! -z "$oldchroot" ] && cp -r $oldchroot/home/* $chrootdir/home/
     echo "Create basic directory .... pass"
 
     
@@ -55,14 +55,11 @@ prepare_chroot() {
     cp /etc/passwd $chrootdir/etc/
     cp /etc/group $chrootdir/etc/
     cp /etc/nsswitch.conf $chrootdir/etc/
-    cp /lib/x86_64-linux-gnu/{libnss_dns-2.23.so,libnss_files-2.23.so,libnsl-2.23.so,libnss_compat-2.23.so} $chrootdir/lib/x86_64-linux-gnu/
+    cp -a /lib/x86_64-linux-gnu/{libnss_compat.so.2,libnss_dns.so.2,libnss_files.so.2,libnsl.so.1} $chrootdir/lib/x86_64-linux-gnu/
+    cp $(readlink -f /lib/x86_64-linux-gnu/{libnss_compat.so.2,libnss_dns.so.2,libnss_files.so.2,libnsl.so.1}) $chrootdir/lib/x86_64-linux-gnu/
     cp /usr/bin/groups $chrootdir/usr/bin/
     cp /usr/bin/whoami $chrootdir/usr/bin/
     cd $chrootdir/lib/x86_64-linux-gnu
-    ln -s libnss_compat-2.23.so libnss_compat.so.2
-    ln -s libnss_dns-2.23.so libnss_dns.so.2
-    ln -s libnsl-2.23.so libnsl.so.1 
-    ln -s libnss_files-2.23.so libnss_files.so.2
     echo "Copy nsswitch config and libraries .... pass"
     
     cp /usr/bin/id $chrootdir/usr/bin/
@@ -93,6 +90,7 @@ do
 	    t) type="$opt"
 		;;
 	    f) force=true
+		;;
 	    *) usage
 		;;
 	esac
@@ -100,14 +98,15 @@ done
 
 chrootdir=${chroot:-/home/chroot}
 
-if [[ "$interactive" = "true" ]] && [ ! -z "$username" -o  ! -z "$type" ]
+if [[ "$interactive" = "true" ]] && [ ! -z "$username" -o  ! -z "$type" -o ! -z "$chroot" ]
 then
-    echo "Dont use \"-i\" with any other argument"
+    echo "[ERROR] Dont use \"-i\" with any other argument"
     usage
     exit 1
 elif [ "$interactive" = "true" ]
 then
-    prepare_chroot
+    echo N
 fi
 
+prepare_chroot
 exit 0
